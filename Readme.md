@@ -37,7 +37,7 @@ Your node keeps running in the background.
 
 ## 🔄 Multiple Node Setup (Advanced: Run Multiple Nodes on One VPS/PC)
 
-> **Note:** 1 VPS = 1 Account, but you can run multiple node IDs for the same account.
+> **Note:** 1 vps = Multiple node IDs of one account run. ( Around 8gb Ram = 1 Nexus multi )
 
 ### **Run the Multi-Node Script**
 
