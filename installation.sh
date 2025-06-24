@@ -18,6 +18,7 @@ RUSTUP_INIT_SKIP_PATH_CHECK=1 ./rust-init.sh -y
 if [ -f "$HOME/.cargo/env" ]; then
     echo "🔁 Sourcing Rust env..."
     source "$HOME/.cargo/env"
+    export PATH="$HOME/.cargo/bin:$PATH"
 else
     echo "❌ Rust env not found. Exiting."
     exit 1
@@ -46,34 +47,15 @@ if ! grep -Fxq "$NEXUS_PATH" "$HOME/.bashrc"; then
     echo "➕ Added Nexus CLI to PATH in ~/.bashrc"
 fi
 
-# Step 9: Source all env files
-for file in \
-    "$HOME/.bashrc" \
-    "$HOME/.zshrc" \
-    "$HOME/.profile" \
-    "$HOME/.cargo/env" \
-    "/data/data/com.termux/files/home/.bashrc"
-do
-    [ -f "$file" ] && source "$file"
-done
+# Step 9: Source .bashrc to apply immediately
+echo "🔁 Sourcing ~/.bashrc..."
+source "$HOME/.bashrc"
 
 # Step 10: Final check for CLI availability
 if ! command -v nexus-network >/dev/null 2>&1; then
-    echo -e "\n❌ Nexus CLI installed, but not found in this shell."
-    echo ""
-    echo "📌 Please do the following steps manually:"
-    echo ""
-    echo "1️⃣  Run this command to activate the environment:"
-    echo "    👉  \033[1msource ~/.bashrc\033[0m"
-    echo ""
-    echo "2️⃣  Then run this to start your node (replace with your actual Node ID):"
-    echo "    👉  \033[1mnexus-network start --node-id <your-node-id>\033[0m"
-    echo ""
-    echo "📎 You can find your Node ID at: https://beta.nexus.xyz/"
-    echo ""
-    echo "✅ After these steps, your node will start running."
-    echo "👋 Exiting script now."
-    exit 0
+    echo -e "\n❌ Nexus CLI installed, but still not found."
+    echo "📌 Try opening a new terminal or manually run: source ~/.bashrc"
+    exit 1
 fi
 
 # Step 11: Ask for node ID
