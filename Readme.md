@@ -14,7 +14,7 @@ screen -S nexus
 
 ---
 
-## 2️⃣ One-Command Installation
+## 2️⃣ One-Command Installation and Node Run
 
 Copy & paste the command below to install and auto-run Nexus CLI:
 
@@ -34,7 +34,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/HustleAirdrops/Nexus-Node-On
 
 ### (VPS Users Only) Detach from Screen
 
-After installation, you can safely detach from the screen session (your node will keep running):
+After Running, you can safely detach from the screen session (your node will keep running):
 
 ```bash
 Ctrl + A, then D
