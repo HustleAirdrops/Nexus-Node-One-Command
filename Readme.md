@@ -7,13 +7,7 @@ Set up your Nexus node in **two ways**: **Simple (Single Node)** or **Multiple N
 
 This method runs **one node per VPS or PC**.
 
-### **Step 1: (VPS Only) Start a Screen Session**
-
-```bash
-screen -S nexus
-```
-
-### **Step 2: Install & Run Nexus Node**
+### **Install & Run Nexus Node**
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/HustleAirdrops/Nexus-Node-One-Command/main/installation.sh)
@@ -27,11 +21,6 @@ bash <(curl -fsSL https://raw.githubusercontent.com/HustleAirdrops/Nexus-Node-On
 1. 🌐 Visit [https://app.nexus.xyz/nodes](https://app.nexus.xyz/nodes)
 2. 🔑 Login and copy your **Node ID** from the dashboard.
 3. 📋 Paste it when prompted during installation.
-
-#### **(VPS Only) Detach from Screen**
-
-Press: `Ctrl + A`, then `D`  
-Your node keeps running in the background.
 
 ---
 
