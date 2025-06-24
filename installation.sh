@@ -37,7 +37,7 @@ sudo apt install -y pkg-config libssl-dev protobuf-compiler
 
 # Step 7: Install Nexus CLI with auto “yes” to terms
 echo "⚙️ Installing Nexus CLI..."
-yes y | curl https://cli.nexus.xyz/ | sh
+curl https://cli.nexus.xyz/ | sh
 
 # Step 8: Source all env files (for Termux/WSL/VPS)
 for file in \
@@ -47,7 +47,7 @@ for file in \
     "$HOME/.cargo/env" \
     "/data/data/com.termux/files/home/.bashrc"
 do
-    [ -f "$file" ] && echo "→ Sourcing $file" && source "$file"
+    [ -f "$file" ] && source "$file"
 done
 
 # Step 9: Get Node ID from user
