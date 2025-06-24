@@ -36,6 +36,7 @@ if ! [[ "$NODE_COUNT" =~ ^[0-9]+$ ]]; then
 fi
 
 echo "🔧 Checking and installing required packages..."
+sudo apt update
 REQUIRED_PKGS=(build-essential pkg-config libssl-dev git git-all protobuf-compiler curl)
 for pkg in "${REQUIRED_PKGS[@]}"; do
   dpkg -s "$pkg" &>/dev/null || sudo apt install -y "$pkg"
