@@ -15,32 +15,41 @@ echo "🔗 GitHub: https://github.com/HustleAirdrops"
 echo "💬 Telegram: https://t.me/Hustle_Airdrops"
 echo ""
 
-# Ask number of nodes
+# Enable swap if not present
+if ! swapon --show | grep -q '/swapfile'; then
+  echo "💾 Creating 2G swapfile to prevent memory crashes..."
+  sudo fallocate -l 2G /swapfile
+  sudo chmod 600 /swapfile
+  sudo mkswap /swapfile
+  sudo swapon /swapfile
+  echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+  echo "✅ Swap enabled."
+else
+  echo "💾 Swap already active."
+fi
+
 read -p "🔢 How many Nexus nodes do you want to run? " NODE_COUNT
 if ! [[ "$NODE_COUNT" =~ ^[0-9]+$ ]]; then
   echo "❌ Invalid input. Please enter digits only."
   exit 1
 fi
 
-# Install dependencies only if not already installed
 echo "🔧 Checking and installing required packages..."
 REQUIRED_PKGS=(build-essential pkg-config libssl-dev git protobuf-compiler curl)
 for pkg in "${REQUIRED_PKGS[@]}"; do
   dpkg -s "$pkg" &>/dev/null || sudo apt install -y "$pkg"
+  sleep 1
 done
 
-# Install Rust if not installed
 if ! command -v rustup &>/dev/null; then
   echo "🦀 Installing Rust..."
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
   source "$HOME/.cargo/env"
 fi
 
-# Source cargo for this session
 source "$HOME/.cargo/env"
 rustup target add riscv32i-unknown-none-elf
 
-# Clone and build Nexus CLI
 if [ ! -d "$HOME/nexus-cli/clients/cli" ]; then
   echo "📥 Cloning Nexus CLI..."
   rm -rf "$HOME/nexus-cli"
@@ -48,13 +57,11 @@ if [ ! -d "$HOME/nexus-cli/clients/cli" ]; then
 fi
 
 cd "$HOME/nexus-cli/clients/cli" || exit
-cargo build --release
+cargo build --release -j 2
 sudo cp target/release/nexus-network /usr/local/bin/
 
-# Setup main node folder
 mkdir -p "$HOME/nexus-multi"
 
-# Loop through all nodes
 for ((i = 1; i <= NODE_COUNT; i++)); do
   echo ""
   read -p "🔑 Enter Node ID for node$i: " NODE_ID
@@ -70,34 +77,32 @@ for ((i = 1; i <= NODE_COUNT; i++)); do
     sudo mv "$SERVICE_PATH" "$SERVICE_PATH.bak.$(date +%s)"
   fi
 
-  # Create service file
   sudo tee "$SERVICE_PATH" > /dev/null <<EOF
 [Unit]
 Description=Nexus Node $i by Hustle Airdrops
-After=network.target
+After=network-online.target
+StartLimitIntervalSec=200
+StartLimitBurst=5
 
 [Service]
 Type=simple
 User=$USER
 WorkingDirectory=$NODE_DIR
 ExecStart=/usr/local/bin/nexus-network start --node-id $NODE_ID --headless
-Restart=always
-RestartSec=5
+Restart=on-failure
+RestartSec=15
 LimitNOFILE=65535
-StartLimitIntervalSec=60
-StartLimitBurst=3
 Environment="NEXUS_HOME=$NODE_DIR"
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-  # Enable and start service
   sudo systemctl daemon-reload
   sudo systemctl enable "$SERVICE_NAME"
   sudo systemctl start "$SERVICE_NAME"
 
-  sleep 2
+  sleep 3
   STATUS=$(systemctl is-active "$SERVICE_NAME")
   if [ "$STATUS" == "active" ]; then
     echo "✅ Node$i started successfully as service: $SERVICE_NAME"
@@ -105,6 +110,7 @@ EOF
     echo "❌ Node$i failed to start. Check error log below:"
     journalctl -u "$SERVICE_NAME" --no-pager | tail -n 20
   fi
+
 done
 
 echo ""
