@@ -1,68 +1,76 @@
 #!/bin/bash
 
-# ⛑️ Ctrl+C safe exit
-trap "echo -e '\n❌ Installation cancelled by user. Exiting safely.'; exit 1" INT
+# Clear the screen
+clear
 
-echo "🚀 Starting Nexus Node Full Setup..."
+echo "==================== NEXUS CLI NODE SETUP ===================="
+echo "🔐 Step 1: Log in to the Nexus Dashboard"
+echo "👉 Open: https://app.nexus.xyz/nodes"
+echo "   - Login with your email address (you will receive a link)"
+echo "     OR"
+echo "   - Login using your Web3 wallet (e.g. MetaMask)"
+echo ""
+echo "🧩 Step 2: Add a CLI Node"
+echo "   - Click 'Add CLI Node'"
+echo "   - Copy the numeric Node ID (e.g. 345677)"
+echo "=============================================================="
+echo ""
 
-# Step 1: Create and enter dir
-mkdir -p nexus-cli && cd nexus-cli
+# Prompt user for Node ID (digits only)
+while true; do
+    read -p "Enter your numeric Node ID: " yournodeid
+    if [[ "$yournodeid" =~ ^[0-9]+$ ]]; then
+        echo "✅ Node ID accepted: $yournodeid"
+        break
+    else
+        echo "❌ Invalid input. Please enter digits only (e.g. 345677)."
+    fi
+done
 
-# Step 2: Install Rust silently
-echo "🦀 Installing Rust..."
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rust-init.sh
-chmod +x rust-init.sh
-RUSTUP_INIT_SKIP_PATH_CHECK=1 ./rust-init.sh -y
-
-# Step 3: Load Rust env
-if [ -f "$HOME/.cargo/env" ]; then
-    echo "🔁 Sourcing Rust env..."
-    source "$HOME/.cargo/env"
-    export PATH="$HOME/.cargo/bin:$PATH"
-else
-    echo "❌ Rust env not found. Exiting."
-    exit 1
-fi
-
-# Step 4: Add target
-echo "🎯 Adding riscv32i target..."
-rustup target add riscv32i-unknown-none-elf
-
-# Step 5: System update
-echo "🔄 Updating apt..."
+# Update and install required packages
+sudo apt update && sudo apt upgrade -y
+sudo apt install screen curl build-essential pkg-config libssl-dev git-all protobuf-compiler -y
 sudo apt update
 
-# Step 6: Install deps
-echo "📦 Installing dependencies..."
-sudo apt install -y pkg-config libssl-dev protobuf-compiler
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source $HOME/.cargo/env
+rustup target add riscv32i-unknown-none-elf
 
-# Step 7: Install Nexus CLI (auto-confirm)
-echo "⚙️ Installing Nexus CLI..."
-yes y | curl https://cli.nexus.xyz/ | sh
+# Clone and build nexus-cli
+git clone https://github.com/nexus-xyz/nexus-cli
+cd nexus-cli/clients/cli
+cargo build --release
 
-# Step 8: Inject Nexus path to .bashrc if missing
-NEXUS_PATH='export PATH="$HOME/.nexus/bin:$PATH"'
-if ! grep -Fxq "$NEXUS_PATH" "$HOME/.bashrc"; then
-    echo "$NEXUS_PATH" >> "$HOME/.bashrc"
-    echo "➕ Added Nexus CLI to PATH in ~/.bashrc"
-fi
+# Copy the binary to system path
+sudo cp target/release/nexus-network /usr/local/bin/
+nexus-network --version
 
-# Step 9: Source .bashrc to apply immediately
-echo "🔁 Sourcing ~/.bashrc..."
-source "$HOME/.bashrc"
+# Create systemd service for Nexus
+sudo tee /etc/systemd/system/nexus.service > /dev/null <<EOF
+[Unit]
+Description=Nexus Proving
+After=network-online.target
 
-# Step 10: Final check for CLI availability
-if ! command -v nexus-network >/dev/null 2>&1; then
-    echo -e "\n❌ Nexus CLI installed, but still not found."
-    echo "📌 Try opening a new terminal or manually run: source ~/.bashrc"
-    exit 1
-fi
+[Service]
+Type=simple
+User=$USER
+ExecStart=/usr/local/bin/nexus-network start --node-id $yournodeid --headless
+Restart=always
+RestartSec=2
+LimitNOFILE=65535
 
-# Step 11: Ask for node ID
-read -p "📝 Enter your Node ID (from https://app.nexus.xyz/nodes): " NODE_ID
+[Install]
+WantedBy=multi-user.target
+EOF
 
-# Step 12: Start node
-echo "🚀 Starting Node..."
-nexus-network start --node-id "$NODE_ID"
+# Enable and start the service
+sudo systemctl daemon-reload
+sudo systemctl enable nexus
+sudo systemctl start nexus
 
-echo "✅ Done. Nexus Node is running."
+# Show service status and logs
+echo ""
+echo "✅ Nexus service has been started!"
+echo "📄 Watching logs now: "
+echo "=============================================================="
