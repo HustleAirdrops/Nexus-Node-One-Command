@@ -15,6 +15,7 @@ echo "🔗 GitHub: https://github.com/HustleAirdrops"
 echo "💬 Telegram: https://t.me/Hustle_Airdrops"
 echo ""
 
+
 # Enable swap if not present
 if ! swapon --show | grep -q '/swapfile'; then
   echo "💾 Creating 2G swapfile to prevent memory crashes..."
@@ -35,7 +36,7 @@ if ! [[ "$NODE_COUNT" =~ ^[0-9]+$ ]]; then
 fi
 
 echo "🔧 Checking and installing required packages..."
-REQUIRED_PKGS=(build-essential pkg-config libssl-dev git protobuf-compiler curl)
+REQUIRED_PKGS=(build-essential pkg-config libssl-dev git git-all protobuf-compiler curl)
 for pkg in "${REQUIRED_PKGS[@]}"; do
   dpkg -s "$pkg" &>/dev/null || sudo apt install -y "$pkg"
   sleep 1
