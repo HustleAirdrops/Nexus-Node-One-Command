@@ -29,7 +29,7 @@ done
 
 # Update and install required packages
 sudo apt update && sudo apt upgrade -y
-sudo apt install screen curl build-essential pkg-config libssl-dev git-all protobuf-compiler -y
+sudo apt install screen curl build-essential pkg-config libssl-dev git git-all protobuf-compiler -y
 sudo apt update
 
 # Install Rust
