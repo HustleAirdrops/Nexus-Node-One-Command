@@ -68,22 +68,19 @@ journalctl -u nexus-nodeX -f
 #### **For Single Node Setup**
 
 ```bash
-sudo systemctl stop nexus && \
-sudo systemctl disable nexus && \
-sudo rm /etc/systemd/system/nexus.service && \
+sudo systemctl stop nexus 2>/dev/null && \
+sudo systemctl disable nexus 2>/dev/null && \
+sudo rm -f /etc/systemd/system/nexus.service && \
 sudo systemctl daemon-reload && \
-sudo rm -rf ~/nexus-cli && \
-sudo rm -rf ~/.cargo && \
-sudo rm -rf /usr/local/bin/nexus-network
+sudo rm -rf ~/nexus-cli ~/.cargo /usr/local/bin/nexus-network
 ```
 
 #### **For Multiple Node Setup**
 
 ```bash
-sudo systemctl stop $(systemctl list-units --type=service --no-pager | grep nexus-node | awk '{print $1}') && \
-sudo systemctl disable $(systemctl list-units --type=service --no-pager | grep nexus-node | awk '{print $1}') && \
-sudo rm -rf ~/nexus-multi && \
-sudo rm -f /etc/systemd/system/nexus-node* && \
+SERVICES=$(systemctl list-units --type=service --no-pager | grep nexus-node | awk '{print $1}'); \
+if [ -n "$SERVICES" ]; then sudo systemctl stop $SERVICES && sudo systemctl disable $SERVICES && sudo rm -f /etc/systemd/system/nexus-node*; fi && \
+sudo rm -rf ~/nexus-multi ~/nexus-cli ~/nexus-multinode ~/nexus-node ~/nexus* && \
 sudo systemctl daemon-reload && \
 sudo systemctl reset-failed
 ```
